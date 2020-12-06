@@ -3,12 +3,6 @@ plugins {
     id 'nebula.netflixoss' version '8.8.1'
 }
 
-idea {
-    project {
-        languageLevel = '1.8'
-    }
-}
-
 // Establish version and status
 ext.githubProjectName = rootProject.name // Change if github project name is not the same as the root project's name
 
