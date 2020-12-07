@@ -235,8 +235,12 @@ public class ClientFactory {
 	public static Object instantiateInstanceWithClientConfig(String className, IClientConfig clientConfig) 
     		throws InstantiationException, IllegalAccessException, ClassNotFoundException {
     	Class clazz = Class.forName(className);
+    	// 如果这个类是它的子类或接口实现 ZoneAwareLoadBalancer 是 IClientConfigAware
+        // true
     	if (IClientConfigAware.class.isAssignableFrom(clazz)) {
+    	    // 调用默认构造函数
     		IClientConfigAware obj = (IClientConfigAware) clazz.newInstance();
+    		// 用配置文件进行初始化
     		obj.initWithNiwsConfig(clientConfig);
     		return obj;
     	} else {

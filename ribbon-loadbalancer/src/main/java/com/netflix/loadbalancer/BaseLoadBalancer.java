@@ -167,21 +167,26 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
     }
     
     void initWithConfig(IClientConfig clientConfig, IRule rule, IPing ping, LoadBalancerStats stats) {
+        // 设置参数
         this.config = clientConfig;
         this.name = clientConfig.getClientName();
         int pingIntervalTime = clientConfig.get(CommonClientConfigKey.NFLoadBalancerPingInterval, 30);
         int maxTotalPingTime = clientConfig.get(CommonClientConfigKey.NFLoadBalancerMaxTotalPingTime, 2);
-
+        // 设置ping的时间间隔
         setPingInterval(pingIntervalTime);
+        // ping周期允许的最大时间
         setMaxTotalPingTime(maxTotalPingTime);
 
         // cross associate with each other
         // i.e. Rule,Ping meet your container LB
         // LB, these are your Ping and Rule guys ...
+        // 设置 rule
         setRule(rule);
+        // 设置 ping
         setPing(ping);
-
+        // 设置负载均衡器统计器
         setLoadBalancerStats(stats);
+        // 让rule持有这个负载均衡器
         rule.setLoadBalancer(this);
         if (ping instanceof AbstractLoadBalancerPing) {
             ((AbstractLoadBalancerPing) ping).setLoadBalancer(this);
@@ -195,6 +200,7 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
                     this.getName(), clientConfig);
             this.setPrimeConnections(primeConnections);
         }
+        // 注册一些监控
         init();
 
     }
@@ -210,12 +216,18 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
 
     @Override
     public void initWithNiwsConfig(IClientConfig clientConfig, Factory factory) {
+        // AvailabilityFilteringRule
         String ruleClassName = clientConfig.getOrDefault(CommonClientConfigKey.NFLoadBalancerRuleClassName);
+        // DummyPing
         String pingClassName = clientConfig.getOrDefault(CommonClientConfigKey.NFLoadBalancerPingClassName);
         try {
+            // 获得rule实例
             IRule rule = (IRule)factory.create(ruleClassName, clientConfig);
+            // 获得化ping实例
             IPing ping = (IPing)factory.create(pingClassName, clientConfig);
+            // 获得负载均衡器统计
             LoadBalancerStats stats = createLoadBalancerStatsFromConfig(clientConfig, factory);
+            // 进行初始化
             initWithConfig(clientConfig, rule, ping, stats);
         } catch (Exception e) {
             throw new RuntimeException("Error initializing load balancer", e);
@@ -264,9 +276,11 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
     }
 
     void setupPingTask() {
+        // 是否可以跳过设置
         if (canSkipPing()) {
             return;
         }
+        // 关闭已存在的负载均衡器计时器
         if (lbTimer != null) {
             lbTimer.cancel();
         }
@@ -320,15 +334,18 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
     }
 
     public void setPingInterval(int pingIntervalSeconds) {
+        // 如果时间间隔小于1秒 直接返回
         if (pingIntervalSeconds < 1) {
             return;
         }
 
+        // 更新
         this.pingIntervalSeconds = pingIntervalSeconds;
         if (logger.isDebugEnabled()) {
             logger.debug("LoadBalancer [{}]:  pingIntervalSeconds set to {}",
         	    name, this.pingIntervalSeconds);
         }
+        // 重新设置ping任务
         setupPingTask(); // since ping data changed
     }
 
@@ -383,6 +400,7 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
 
     public void setRule(IRule rule) {
         if (rule != null) {
+            // 更新rule
             this.rule = rule;
         } else {
             /* default rule */

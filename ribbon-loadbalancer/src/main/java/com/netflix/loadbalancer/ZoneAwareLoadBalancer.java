@@ -53,11 +53,11 @@ For each request, the steps above will be repeated. That is to say, each zone re
  * @param <T>
  */
 public class ZoneAwareLoadBalancer<T extends Server> extends DynamicServerListLoadBalancer<T> {
-
+    // 每个服务对应的负载均衡器
     private ConcurrentHashMap<String, BaseLoadBalancer> balancers = new ConcurrentHashMap<String, BaseLoadBalancer>();
     
     private static final Logger logger = LoggerFactory.getLogger(ZoneAwareLoadBalancer.class);
-
+    //client 配置
     private static final IClientConfigKey<Boolean> ENABLED = new CommonClientConfigKey<Boolean>(
             "ZoneAwareNIWSDiscoveryLoadBalancer.enabled", true){};
 
@@ -108,8 +108,10 @@ public class ZoneAwareLoadBalancer<T extends Server> extends DynamicServerListLo
 
     @Override
     public void initWithNiwsConfig(IClientConfig clientConfig) {
+        // 进行父类初始化
         super.initWithNiwsConfig(clientConfig);
 
+        // 初始化一些配置
         String name = Optional.ofNullable(getName()).orElse("default");
 
         this.enabled = clientConfig.getGlobalProperty(ENABLED);

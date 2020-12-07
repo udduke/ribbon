@@ -100,6 +100,7 @@ public class DynamicServerListLoadBalancer<T extends Server> extends BaseLoadBal
     
     @Override
     public void initWithNiwsConfig(IClientConfig clientConfig) {
+        // 父类初始化
         this.initWithNiwsConfig(clientConfig, ClientFactory::instantiateInstanceWithClientConfig);
 
     }
@@ -107,6 +108,7 @@ public class DynamicServerListLoadBalancer<T extends Server> extends BaseLoadBal
     @Override
     public void initWithNiwsConfig(IClientConfig clientConfig, Factory factory) {
         try {
+            // 父类初始化
             super.initWithNiwsConfig(clientConfig, factory);
             String niwsServerListClassName = clientConfig.getOrDefault(CommonClientConfigKey.NIWSServerListClassName);
 
