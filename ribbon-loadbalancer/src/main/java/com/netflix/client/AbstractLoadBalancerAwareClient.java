@@ -124,12 +124,16 @@ public abstract class AbstractLoadBalancerAwareClient<S extends ClientRequest, T
     public abstract RequestSpecificRetryHandler getRequestSpecificRetryHandler(S request, IClientConfig requestConfig);
 
     protected LoadBalancerCommand<T> buildLoadBalancerCommand(final S request, final IClientConfig config) {
+        // 获取请求特定的重试处理器
 		RequestSpecificRetryHandler handler = getRequestSpecificRetryHandler(request, config);
+		// 构建负载均衡器命令
 		LoadBalancerCommand.Builder<T> builder = LoadBalancerCommand.<T>builder()
 				.withLoadBalancerContext(this)
 				.withRetryHandler(handler)
 				.withLoadBalancerURI(request.getUri());
+		//一些自定操作
 		customizeLoadBalancerCommandBuilder(request, config, builder);
+		// 返回结果
 		return builder.build();
 	}
 

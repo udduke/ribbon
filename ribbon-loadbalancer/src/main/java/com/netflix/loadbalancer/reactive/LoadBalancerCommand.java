@@ -258,17 +258,20 @@ public class LoadBalancerCommand<T> {
      * result during execution and retries will be emitted.
      */
     public Observable<T> submit(final ServerOperation<T> operation) {
+        // 创建一个执行信息上下文
         final ExecutionInfoContext context = new ExecutionInfoContext();
-        
+        // 如果监听调用器不存在
         if (listenerInvoker != null) {
             try {
+                // 创建一个新的
                 listenerInvoker.onExecutionStart();
             } catch (AbortExecutionException e) {
                 return Observable.error(e);
             }
         }
-
+        // 同一个服务的最大重试次数
         final int maxRetrysSame = retryHandler.getMaxRetriesOnSameServer();
+        // 重试不同服务的最大次数
         final int maxRetrysNext = retryHandler.getMaxRetriesOnNextServer();
 
         // Use the load balancer

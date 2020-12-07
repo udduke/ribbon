@@ -55,21 +55,30 @@ public class ClientFactory {
      * @throws ClientException if any errors occurs in the process, or if the client with the same name already exists
      */
     public static synchronized IClient<?, ?> registerClientFromProperties(String restClientName, IClientConfig clientConfig) throws ClientException { 
-    	IClient<?, ?> client = null;
+    	// 客户端
+        IClient<?, ?> client = null;
+        // 负载均衡器
     	ILoadBalancer loadBalancer = null;
+    	// 异常处理
     	if (simpleClientMap.get(restClientName) != null) {
     		throw new ClientException(
     				ClientException.ErrorType.GENERAL,
     				"A Rest Client with this name is already registered. Please use a different name");
     	}
     	try {
+    	    // 获取默认的client类名 RestClient
     		String clientClassName = clientConfig.getOrDefault(CommonClientConfigKey.ClientClassName);
+    		// 用类名和配置 用反射创建client
     		client = (IClient<?, ?>) instantiateInstanceWithClientConfig(clientClassName, clientConfig);
     		boolean initializeNFLoadBalancer = clientConfig.getOrDefault(CommonClientConfigKey.InitializeNFLoadBalancer);
+    		// ture
     		if (initializeNFLoadBalancer) {
+    		    // 初始化负载均衡器
     			loadBalancer = registerNamedLoadBalancerFromclientConfig(restClientName, clientConfig);
     		}
+    		// ture
     		if (client instanceof AbstractLoadBalancerAwareClient) {
+    		    // 为这个客户端设置负载均衡器
     			((AbstractLoadBalancerAwareClient) client).setLoadBalancer(loadBalancer);
     		}
     	} catch (Throwable e) {
@@ -79,6 +88,7 @@ public class ClientFactory {
     		throw new ClientException(ClientException.ErrorType.CONFIGURATION, 
     				message, e);
     	}
+    	// 为这个服务保存client
     	simpleClientMap.put(restClientName, client);
 
     	Monitors.registerObject("Client_" + restClientName, client);
@@ -93,10 +103,13 @@ public class ClientFactory {
      * @throws RuntimeException if an error occurs in creating the client.
      */
     public static synchronized IClient getNamedClient(String name) {
+        // 如果map中已经存在这个服务的client 直接返回
         if (simpleClientMap.get(name) != null) {
             return simpleClientMap.get(name);
         }
         try {
+            // 获取给定名称的client配置
+            // 用服务名称和配置创建一个client
             return registerClientFromProperties(name, getNamedConfig(name));
         } catch (ClientException e) {
             throw new RuntimeException("Unable to create client", e);
@@ -176,13 +189,17 @@ public class ClientFactory {
      * @see #instantiateInstanceWithClientConfig(String, IClientConfig)
      */
     public static ILoadBalancer registerNamedLoadBalancerFromclientConfig(String name, IClientConfig clientConfig) throws ClientException {
+        // 检查这个服务是否已经存在负载均衡器
         if (namedLBMap.get(name) != null) {
             throw new ClientException("LoadBalancer for name " + name + " already exists");
         }
     	ILoadBalancer lb = null;
         try {
+            // 默认是 ZoneAwareLoadBalancer
             String loadBalancerClassName = clientConfig.getOrDefault(CommonClientConfigKey.NFLoadBalancerClassName);
-            lb = (ILoadBalancer) ClientFactory.instantiateInstanceWithClientConfig(loadBalancerClassName, clientConfig);                                    
+            // 初始化负载均衡器
+            lb = (ILoadBalancer) ClientFactory.instantiateInstanceWithClientConfig(loadBalancerClassName, clientConfig);
+            // 保存这个服务的负载均衡器
             namedLBMap.put(name, lb);            
             logger.info("Client: {} instantiated a LoadBalancer: {}", name, lb);
             return lb;
