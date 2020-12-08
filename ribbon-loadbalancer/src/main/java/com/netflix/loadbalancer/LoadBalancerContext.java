@@ -84,15 +84,22 @@ public class LoadBalancerContext implements IClientConfigAware {
      */
     @Override
     public void initWithNiwsConfig(IClientConfig clientConfig) {
+        // 如果参数不存在直接返回
         if (clientConfig == null) {
             return;    
         }
+        // 获取客户端名称 默认值是 “”
         clientName = clientConfig.getClientName();
+        // true
         if (StringUtils.isEmpty(clientName)) {
+            // 重新复制
             clientName = "default";
         }
+
         vipAddresses = clientConfig.resolveDeploymentContextbasedVipAddresses();
+        // 自动重试最大次数
         maxAutoRetries = clientConfig.getOrDefault(CommonClientConfigKey.MaxAutoRetries);
+        // 自动重试下一台服务器最大次数
         maxAutoRetriesNextServer = clientConfig.getOrDefault(CommonClientConfigKey.MaxAutoRetriesNextServer);
         okToRetryOnAllOperations = clientConfig.getOrDefault(CommonClientConfigKey.OkToRetryOnAllOperations);
         defaultRetryHandler = new DefaultLoadBalancerRetryHandler(clientConfig);
